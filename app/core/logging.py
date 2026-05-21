@@ -45,8 +45,8 @@ def configure_logging(settings: Settings) -> None:
         renderer = JSONRenderer()
 
     structlog.configure(
-        processors=shared_processors
-        + [
+        processors=[
+            *shared_processors,
             structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
