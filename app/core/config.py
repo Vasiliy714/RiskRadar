@@ -1,17 +1,16 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseSettings):
-
+class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file = ".env",
-        env_file_encoding = "utf-8",
-        env_prefix = "APP_",
-        extra = "ignore",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_prefix="APP_",
+        extra="ignore",
     )
 
     env: Literal["local", "dev", "staging", "prod"] = "local"
@@ -19,6 +18,7 @@ class Settings(BaseSettings):
     log_format: Literal["pretty", "json"] = "pretty"
     host: str = "0.0.0.0"
     port: int = Field(default=8000, ge=1, le=65535)
+    db_echo: bool = False
 
     @field_validator("log_level")
     @classmethod
@@ -33,6 +33,78 @@ class Settings(BaseSettings):
     @property
     def is_local(self) -> bool:
         return self.env == "local"
+
+    @property
+    def expose_error_details(self) -> bool:
+        return self.env in ("local", "dev")
+
+
+class PostgresSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_prefix="POSTGRES_",
+        extra="ignore",
+    )
+
+    user: str
+    password: SecretStr
+    db: str
+    host: str = "localhost"
+    port: int = Field(default=5432, ge=1, le=65535)
+
+    @property
+    def url(self) -> str:
+        pwd = self.password.get_secret_value()
+        return f"postgresql+asyncpg://{self.user}:{pwd}@{self.host}:{self.port}/{self.db}"
+
+
+class RedisSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_prefix="REDIS_",
+        extra="ignore",
+    )
+
+    host: str = "localhost"
+    port: int = Field(default=6379, ge=1, le=65535)
+    password: SecretStr | None = None
+    db: int = Field(default=0, ge=0)
+
+    @property
+    def url(self) -> str:
+        if self.password is not None:
+            pwd = self.password.get_secret_value()
+            return f"redis://:{pwd}@{self.host}:{self.port}/{self.db}"
+        return f"redis://{self.host}:{self.port}/{self.db}"
+
+
+class QdrantSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_prefix="QDRANT_",
+        extra="ignore",
+    )
+
+    host: str = "localhost"
+    port: int = Field(default=6333, ge=1, le=65535)
+    grpc_port: int = Field(default=6334, ge=1, le=65535)
+
+    @property
+    def url(self) -> str:
+        return f"http://{self.host}:{self.port}"
+
+
+class Settings:
+    """Корневой контейнер настроек (не BaseSettings)."""
+
+    def __init__(self) -> None:
+        self.app = AppSettings()
+        self.postgres = PostgresSettings()
+        self.redis = RedisSettings()
+        self.qdrant = QdrantSettings()
 
 
 @lru_cache

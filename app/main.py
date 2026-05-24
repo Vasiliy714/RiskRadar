@@ -3,23 +3,39 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api import health
+from app.core.clients import create_clients, shutdown_clients
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 
 log = get_logger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
-    configure_logging(settings)
+    configure_logging(settings.app)
+
+    clients = create_clients(
+        settings,
+        db_echo=settings.app.db_echo or settings.app.is_local,
+    )
+    app.state.clients = clients
+
     log.info(
         "app.starting",
-        env=settings.env,
-        log_format=settings.log_format,
-        log_level=settings.log_level,
+        env=settings.app.env,
+        log_format=settings.app.log_format,
+        log_level=settings.app.log_level,
     )
-    yield
-    log.info("app.stopping")
+    log.info("infra.initialized")
+
+    try:
+        yield
+    finally:
+        log.info("app.stopping")
+        await shutdown_clients(clients)
+        log.info("app.stopped")
 
 
 def create_app() -> FastAPI:
@@ -27,11 +43,9 @@ def create_app() -> FastAPI:
         title="RiskRadar",
         lifespan=lifespan,
     )
-
-    @app.get("/healthz")
-    async def healthz() -> dict[str, str]:
-        return {"status": "ok"}
+    app.include_router(health.router)
 
     return app
+
 
 app = create_app()

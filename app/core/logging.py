@@ -16,12 +16,12 @@ from structlog.processors import (
 )
 
 if TYPE_CHECKING:
-    from app.core.config import Settings
+    from app.core.config import AppSettings
 
 _configured = False
 
 
-def configure_logging(settings: Settings) -> None:
+def configure_logging(settings: AppSettings) -> None:
     global _configured
     if _configured:
         return

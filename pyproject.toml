@@ -12,6 +12,11 @@ dependencies = [
     "pydantic-settings>=2.14.1",
     "structlog>=25.5.0",
     "uvicorn[standard]>=0.47.0",
+    "asyncpg>=0.30.0",
+    "redis[hiredis]>=5.0",
+    "httpx>=0.28.1",
+    "sqlalchemy[asyncio]>=2.0",
+    "qdrant-client>=1.12",
 ]
 
 [dependency-groups]
@@ -29,7 +34,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "ASYNC", "PT", "TID", "C4", "PIE", "RET", "ANN"]
-ignore = ["ANN101", "ANN102"]
+ignore = []
 
 [tool.mypy]
 python_version = "3.12"
@@ -44,3 +49,7 @@ disallow_untyped_defs = false
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = [
+    "integration: requires running docker compose",
+]
+addopts = "-m 'not integration'"
