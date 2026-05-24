@@ -20,3 +20,20 @@ ps:
 
 clean:
 	docker compose down -v
+
+.PHONY: migrate migrate-create migrate-down migrate-history migrate-current
+
+migrate:
+	uv run alembic upgrade head
+
+migrate-create:
+	uv run alembic revision --autogenerate -m "$(MSG)"
+
+migrate-down:
+	uv run alembic downgrade -1
+
+migrate-history:
+	uv run alembic history --verbose
+
+migrate-current:
+	uv run alembic current

@@ -16,18 +16,19 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     configure_logging(settings.app)
 
-    clients = create_clients(
-        settings,
-        db_echo=settings.app.db_echo or settings.app.is_local,
-    )
-    app.state.clients = clients
-
     log.info(
         "app.starting",
         env=settings.app.env,
         log_format=settings.app.log_format,
         log_level=settings.app.log_level,
     )
+
+    clients = create_clients(
+        settings,
+        db_echo=settings.app.db_echo or settings.app.is_local,
+    )
+    app.state.clients = clients
+
     log.info("infra.initialized")
 
     try:
