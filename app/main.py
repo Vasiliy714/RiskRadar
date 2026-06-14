@@ -4,10 +4,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api import health
+from app.api import metrics as metrics_api
 from app.api.v1.router import api_v1_router
 from app.core.clients import create_clients, shutdown_clients
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
+from app.observability.middleware import PrometheusMiddleware
+from app.observability.request_id import RequestIDMiddleware
 
 log = get_logger(__name__)
 
@@ -45,7 +48,12 @@ def create_app() -> FastAPI:
         title="RiskRadar",
         lifespan=lifespan,
     )
+
+    app.add_middleware(PrometheusMiddleware)
+    app.add_middleware(RequestIDMiddleware)
+
     app.include_router(health.router)
+    app.include_router(metrics_api.router)
     app.include_router(api_v1_router)
 
     return app

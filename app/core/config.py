@@ -13,6 +13,8 @@ class AppSettings(BaseSettings):
         extra="ignore",
     )
 
+    llm_provider: Literal["mock", "deepseek"] = "mock"
+
     env: Literal["local", "dev", "staging", "prod"] = "local"
     log_level: str = "INFO"
     log_format: Literal["pretty", "json"] = "pretty"
@@ -97,6 +99,20 @@ class QdrantSettings(BaseSettings):
         return f"http://{self.host}:{self.port}"
 
 
+class DeepSeekSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_prefix="DEEPSEEK_",
+        extra="ignore",
+    )
+    api_key: SecretStr | None = None
+    base_url: str = "https://api.deepseek.com"
+    model: str = "deepseek-chat"
+    timeout_seconds: float = 60.0
+    max_retries: int = 3
+
+
 class Settings:
     """Корневой контейнер настроек (не BaseSettings)."""
 
@@ -105,6 +121,7 @@ class Settings:
         self.postgres = PostgresSettings()
         self.redis = RedisSettings()
         self.qdrant = QdrantSettings()
+        self.deepseek = DeepSeekSettings()
 
 
 @lru_cache
