@@ -32,11 +32,7 @@ class DatabaseClient:
     @asynccontextmanager
     async def session(self) -> AsyncGenerator[AsyncSession, None]:
         async with self.session_factory() as session:
-            try:
-                yield session
-            except Exception:
-                await session.rollback()
-                raise
+            yield session
 
     async def close(self) -> None:
         await self.engine.dispose()
