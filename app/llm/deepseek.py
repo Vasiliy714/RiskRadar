@@ -80,7 +80,12 @@ class DeepSeekClient(LLMClient):
         start = time.perf_counter()
         try:
             resp = await self._client.post(path, json=payload)
-        except (httpx.ConnectError, httpx.ReadTimeout, httpx.WriteTimeout) as exc:
+        except (
+            httpx.ConnectError,
+            httpx.ConnectTimeout,
+            httpx.ReadTimeout,
+            httpx.WriteTimeout,
+        ) as exc:
             raise LLMTransientError(f"deepseek network error: {exc}") from exc
 
         latency_ms = (time.perf_counter() - start) * 1000

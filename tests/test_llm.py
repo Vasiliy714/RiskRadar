@@ -1,14 +1,13 @@
+
 import httpx
 import pytest
-import os
+from pydantic import SecretStr
 
-from app.core.config import DeepSeekSettings
+from app.core.config import DeepSeekSettings, get_settings
 from app.llm.base import LLMPermanentError, LLMTransientError
+from app.llm.deepseek import DeepSeekClient
 from app.llm.mock import MockLLMClient
 from app.llm.types import Message, Role
-from app.core.config import get_settings
-from app.llm.deepseek import DeepSeekClient
-from pydantic import SecretStr
 
 
 def _settings(*, max_retries: int = 3) -> DeepSeekSettings:
@@ -58,7 +57,7 @@ async def test_deepseek_400_raises_permanent_error_without_retry() -> None:
     try:
         with pytest.raises(LLMPermanentError):
             await client.chat([Message(role=Role.USER, content="hi")])
-        assert calls == 1  # tenacity не должен ретраить permanent
+        assert calls == 1  # tenacity не должен повторять постоянные ошибки
     finally:
         await client.close()
 
@@ -87,5 +86,9 @@ async def test_deepseek_real_chat() -> None:
         assert result.usage.completion_tokens > 0
         assert result.usage.total_tokens > 0
         assert result.latency_ms > 0
+    except LLMPermanentError as exc:
+        if "402" in str(exc) and "Insufficient Balance" in str(exc):
+            pytest.skip("DeepSeek account has no balance")
+        raise
     finally:
         await client.close()

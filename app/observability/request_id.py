@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import Awaitable, Callable
 
 import structlog
 from starlette.datastructures import MutableHeaders
@@ -37,4 +36,3 @@ class RequestIDMiddleware:
             await self.app(scope, receive, send_with_request_id)
         finally:
             structlog.contextvars.clear_contextvars()
-    

@@ -9,37 +9,32 @@ from alembic import context
 from app.core.config import get_settings
 from app.db import Base
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# Это объект конфигурации Alembic; он дает доступ
+# к значениям из используемого .ini-файла.
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+# Настраиваем Python-логирование из файла конфигурации.
+# Эта строка инициализирует логгеры.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
+# Укажите здесь MetaData моделей для поддержки autogenerate.
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
+# При необходимости здесь можно получать другие значения из конфигурации:
 # my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+# ... и т. д.
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode.
+    """Запускает миграции в офлайн-режиме.
 
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
+    Контекст настраивается только URL-адресом без Engine, хотя Engine здесь
+    тоже допустим. Если не создавать Engine, для запуска не нужен DBAPI.
 
-    Calls to context.execute() here emit the given string to the
-    script output.
+    Вызовы context.execute() в этом режиме выводят переданную строку в скрипт.
 
     """
     settings = get_settings()
@@ -64,8 +59,7 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations(configuration: dict[str, str]) -> None:
-    """In this scenario we need to create an Engine
-    and associate a connection with the context.
+    """Создает движок и подключает объект к контексту миграций.
 
     """
 
@@ -82,7 +76,7 @@ async def run_async_migrations(configuration: dict[str, str]) -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
+    """Запускает миграции в онлайн-режиме."""
     settings = get_settings()
     configuration = config.get_section(config.config_ini_section) or {}
     configuration["sqlalchemy.url"] = settings.postgres.url

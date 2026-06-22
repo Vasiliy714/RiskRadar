@@ -1,0 +1,2 @@
+DENSE_VECTOR_NAME = "dense"
+SPARSE_VECTOR_NAME = "text"

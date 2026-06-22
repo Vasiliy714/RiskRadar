@@ -31,9 +31,15 @@ class ChatResult(BaseModel):
     finish_reason: str | None = None
 
 
+class StructuredChatResult[T: BaseModel](BaseModel):
+    data: T
+    chat: ChatResult
+
+
 __all__ = [
     "ChatResult",
     "Message",
     "Role",
+    "StructuredChatResult",
     "TokenUsage",
 ]
